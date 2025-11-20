@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Red Leaks - Smooth Voice</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&display=swap');
+
+        /* --- ENGINE --- */
+        body { margin: 0; padding: 0; width: 100vw; height: 100vh; background: #050505; display: flex; justify-content: center; align-items: center; overflow: hidden; font-family: 'Outfit', sans-serif; }
+        #stage { width: 1920px; height: 1080px; background: linear-gradient(135deg, #fff0f5 0%, #fff5e6 100%); position: relative; overflow: hidden; box-shadow: 0 0 150px rgba(0,0,0,0.8); transform-origin: center center; }
+
+        /* --- VISUALS --- */
+        .bg-orb { position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.6; z-index: 0; }
+        .orb-1 { width: 900px; height: 900px; background: radial-gradient(circle, #ff9a9e 0%, transparent 70%); top: -300px; left: -200px; animation: float 15s infinite alternate; }
+        .orb-2 { width: 800px; height: 800px; background: radial-gradient(circle, #a18cd1 0%, transparent 70%); bottom: -200px; right: -200px; animation: float 12s infinite alternate-reverse; }
+        @keyframes float { from { transform: translate(0,0); } to { transform: translate(30px, 50px); } }
+
+        /* --- SLIDES --- */
+        .slide { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: grid; grid-template-columns: 1fr 1fr; opacity: 0; pointer-events: none; transition: opacity 1s ease; z-index: 1; }
+        .slide.active { opacity: 1; z-index: 10; }
+        .slide.centered { display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+        .col-text { padding: 140px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; z-index: 2; }
+        .col-visual { display: flex; justify-content: center; align-items: center; position: relative; z-index: 2; }
+
+        /* Typography */
+        .tag { background: #ff4757; color: white; padding: 10px 25px; border-radius: 50px; font-weight: 700; font-size: 0.9rem; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 25px; box-shadow: 0 10px 20px rgba(255, 71, 87, 0.2); }
+        h1 { font-size: 4.8rem; line-height: 1.05; margin: 0; color: #1e272e; font-weight: 800; letter-spacing: -2px; }
+        p { font-size: 1.5rem; color: #636e72; line-height: 1.6; max-width: 90%; margin-top: 25px; text-align: left; }
+        .slide.centered p { text-align: center; max-width: 60%; }
+        .highlight { color: #ff4757; }
+        .quote { font-style: italic; color: #ff4757; font-weight: 500; font-size: 1.8rem; }
+
+        /* --- PHONE --- */
+        .phone-mockup { width: 380px; height: 800px; background: #fff; border-radius: 55px; border: 14px solid #2d3436; position: relative; overflow: hidden; box-shadow: 40px 40px 90px rgba(0,0,0,0.15); }
+        .notch { width: 160px; height: 32px; background: #2d3436; position: absolute; top: 0; left: 50%; transform: translateX(-50%); border-radius: 0 0 20px 20px; z-index: 20; }
+        .screen { padding: 50px 25px; background: #fafafa; height: 100%; box-sizing: border-box; display: flex; flex-direction: column; }
+        .app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .app-avatar { width: 40px; height: 40px; background: #eee; border-radius: 50%; }
+        .cycle-widget { width: 100%; height: 120px; background: linear-gradient(135deg, #ff9a9e 0%, #ff6b6b 100%); border-radius: 25px; display: flex; align-items: center; padding: 20px; box-sizing: border-box; color: white; margin-bottom: 30px; }
+        .label { font-size: 0.9rem; color: #888; font-weight: 700; margin-top: 10px; margin-bottom: 8px; display: block; }
+        .card { background: white; padding: 15px; border-radius: 18px; box-shadow: 0 5px 20px rgba(0,0,0,0.03); display: flex; gap: 10px; border: 1px solid #f0f0f0; }
+        .btn-opt { flex: 1; padding: 15px; border: 2px solid #f5f5f5; border-radius: 14px; text-align: center; font-weight: 600; cursor: pointer; font-size: 0.9rem; transition: 0.2s; }
+        .btn-opt.active { border-color: #ff4757; background: #fff0f3; color: #ff4757; }
+        .btn-save { width: 100%; height: 65px; background: #2d3436; color: white; border-radius: 18px; display: flex; justify-content: center; align-items: center; font-weight: 700; font-size: 1.1rem; margin-top: auto; margin-bottom: 10px; transition: 0.3s; }
+        .cursor { width: 0; height: 0; border-left: 16px solid transparent; border-right: 16px solid transparent; border-bottom: 28px solid #000; position: absolute; transform: rotate(-25deg); top: 110%; left: 110%; z-index: 50; filter: drop-shadow(4px 4px 8px rgba(0,0,0,0.2)); transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1); }
+
+        /* --- MAP --- */
+        .map-box { width: 1400px; height: 600px; background: white; border-radius: 40px; display: flex; overflow: hidden; box-shadow: 0 40px 100px rgba(0,0,0,0.1); border: 1px solid #eee; }
+        .map-info { width: 400px; background: #fff; padding: 60px; display: flex; flex-direction: column; justify-content: center; border-right: 1px solid #f0f0f0; z-index: 2; }
+        .map-canvas { flex: 1; position: relative; background: #f4f6f8; background-image: radial-gradient(#cfd8dc 2px, transparent 2px); background-size: 40px 40px; }
+        .status-row { display: flex; align-items: center; margin-bottom: 30px; gap: 15px; }
+        .status-dot { width: 12px; height: 12px; background: #ccc; border-radius: 50%; }
+        .active-status .status-dot { background: #2ecc71; box-shadow: 0 0 10px #2ecc71; }
+        .active-status .status-text { color: #2d3436; }
+        .pin-box { width: 80px; height: 80px; position: absolute; display: flex; justify-content: center; align-items: center; z-index: 5; }
+        .pin-box i { font-size: 3.5rem; }
+        .store-loc { top: 100px; left: 750px; color: #ff4757; }
+        .user-loc  { top: 400px; left: 150px; color: #2d3436; }
+        .scan-ring { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100px; height: 100px; border: 2px solid #ff4757; border-radius: 50%; opacity: 0; }
+        @keyframes ripple { 0% { width: 0; height: 0; opacity: 1; } 100% { width: 200px; height: 200px; opacity: 0; } }
+        .road-line { position: absolute; top: 136px; left: 790px; height: 6px; width: 0px; background: #ff4757; border-radius: 10px; transform-origin: left center; transform: rotate(153.4deg); transition: width 2s linear; z-index: 1; }
+        .scooter { position: absolute; top: -45px; left: 100%; font-size: 3.5rem; color: #2d3436; transform: rotate(-153.4deg) rotateY(180deg); opacity: 0; transition: opacity 0.5s ease; }
+
+        /* --- CARDS --- */
+        .timeline { display: flex; gap: 60px; margin-top: 60px; }
+        .t-card { width: 300px; padding: 40px 30px; background: rgba(255,255,255,0.85); border-radius: 30px; text-align: center; border: 1px solid #fff; opacity: 0; transform: translateY(50px); transition: 0.8s; box-shadow: 0 20px 40px rgba(0,0,0,0.05); }
+        .t-card.show { opacity: 1; transform: translateY(0); }
+
+        /* --- COMP TABLE --- */
+        .comp-grid { display: grid; grid-template-columns: 1fr 1.2fr; width: 1300px; margin-top: 50px; border-radius: 40px; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.1); }
+        .comp-col { padding: 70px; }
+        .c-gray { background: #f1f2f6; color: #999; display: flex; flex-direction: column; justify-content: center; }
+        .c-white { background: white; color: #2d3436; position: relative; z-index: 2; box-shadow: -20px 0 50px rgba(0,0,0,0.05); border-left: 1px solid #eee; border: 4px solid #ff4757; transform: scale(1.02); }
+        .c-item { font-size: 1.6rem; margin-bottom: 25px; display: flex; align-items: center; gap: 20px; }
+
+        /* --- LAUNCHER --- */
+        #launcher { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #050505; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; }
+        .btn-go { padding: 20px 60px; font-size: 1.5rem; background: #ff4757; color: white; border: none; border-radius: 50px; font-weight: 800; cursor: pointer; margin-top: 30px; transition: 0.3s; box-shadow: 0 0 30px rgba(255, 71, 87, 0.4); }
+        .btn-go:hover { transform: scale(1.05); background: #ff6b81; }
+
+    </style>
+</head>
+<body>
+
+    <div id="launcher">
+        <i class="fas fa-microphone-alt" style="font-size: 4rem; color: #ff4757; margin-bottom: 20px;"></i>
+        <h1>Red Leaks</h1>
+        <p style="color: #888; font-size: 1.2rem;">Engine: Seamless Voice (India/US)</p>
+        <button class="btn-go" onclick="initSystem()">START PRESENTATION</button>
+    </div>
+
+    <div id="stage">
+        <div class="bg-orb orb-1"></div>
+        <div class="bg-orb orb-2"></div>
+
+        <!-- S1 -->
+        <div id="s1" class="slide centered active">
+            <div class="tag">The Problem</div>
+            <h1>Periods are predictable...<br>until they're <span class="highlight">NOT.</span></h1>
+            <p>3 PM. An empty bag. A closed shop. <br>Why is menstrual care still a logistical nightmare?</p>
+        </div>
+
+        <!-- S2 -->
+        <div id="s2" class="slide">
+            <div class="col-text">
+                <div class="tag">YOUR COMPANION</div>
+                <h1>Always Beside You.</h1>
+                <p class="quote">"Akkam Pakkam Yaarum Illa... <br>But Red Leaks is here."</p>
+                <p>We remember your choices. We know your location. One-time setup, lifetime comfort.</p>
+            </div>
+            <div class="col-visual">
+                <div class="phone-mockup">
+                    <div class="notch"></div>
+                    <div class="screen">
+                        <div class="app-header">
+                            <div style="font-weight: 800; font-size: 1.2rem;">Settings</div>
+                            <div class="app-avatar"></div>
+                        </div>
+                        <div class="cycle-widget">
+                            <div style="flex:1;">
+                                <div style="font-size: 0.8rem; opacity: 0.8;">Cycle Day</div>
+                                <div style="font-size: 2.5rem; font-weight: 800; line-height: 1;">26</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 0.8rem;">Prediction</div>
+                                <div style="font-weight: 700;">2 Days Left</div>
+                            </div>
+                        </div>
+                        <span class="label">Preferred Brand</span>
+                        <div class="card">
+                            <div class="btn-opt" id="opt-whisper">Whisper</div>
+                            <div class="btn-opt">Stayfree</div>
+                        </div>
+                        <span class="label">Delivery Point</span>
+                        <div class="card" style="align-items: center;">
+                            <div style="width: 30px; height: 30px; background: #ffe0e3; border-radius: 8px; display: flex; justify-content: center; align-items: center; color: #ff4757;">
+                                <i class="fas fa-map-pin"></i>
+                            </div>
+                            <div style="font-weight: 600; font-size: 0.9rem; color: #333;">North Campus, Dorm A</div>
+                        </div>
+                        <div class="btn-save" id="btn-save">Save Preferences</div>
+                    </div>
+                    <div class="cursor" id="mouse"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- S3 -->
+        <div id="s3" class="slide centered">
+            <h1>15-Minute Delivery</h1>
+            <p>We bridge the gap between digital requests and real-time physical inventory.</p>
+            <div class="map-box">
+                <div class="map-info">
+                    <div class="status-row active-status" id="st-1">
+                        <div class="status-dot"></div><div class="status-text">Locating Stock...</div>
+                    </div>
+                    <div class="status-row" id="st-2">
+                        <div class="status-dot"></div><div class="status-text">Dispatching Rider</div>
+                    </div>
+                    <div style="margin-top: auto; background: #2d3436; color: white; padding: 30px; border-radius: 20px;">
+                        <div style="font-size: 0.9rem; opacity: 0.7;">Estimated Arrival</div>
+                        <div style="font-size: 3.5rem; font-weight: 800;">08 min</div>
+                    </div>
+                </div>
+                <div class="map-canvas">
+                    <div class="pin-box store-loc"><div class="scan-ring" id="scanner"></div><i class="fas fa-store"></i></div>
+                    <div class="pin-box user-loc"><i class="fas fa-map-marker-alt"></i></div>
+                    <div class="road-line" id="road">
+                        <div class="scooter" id="scooter"><i class="fas fa-motorcycle"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- S4 -->
+        <div id="s4" class="slide centered">
+            <div class="tag">Revenue Model</div>
+            <h1>The "Milkman" Subscription</h1>
+            <p>Predictive logistics. Recurring Revenue. Zero user effort.</p>
+            <div class="timeline">
+                <div class="t-card" id="t1">
+                    <i class="fas fa-brain" style="font-size: 3.5rem; color: #ff4757; margin-bottom: 20px;"></i>
+                    <h3>AI Prediction</h3>
+                </div>
+                <div class="t-card" id="t2">
+                    <i class="fas fa-shipping-fast" style="font-size: 3.5rem; color: #ff4757; margin-bottom: 20px;"></i>
+                    <h3>Auto-Dispatch</h3>
+                </div>
+                <div class="t-card" id="t3">
+                    <i class="fas fa-smile-beam" style="font-size: 3.5rem; color: #ff4757; margin-bottom: 20px;"></i>
+                    <h3>Zero Panic</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- S5 -->
+        <div id="s5" class="slide centered">
+            <h1>Why We Win</h1>
+            <div class="comp-grid">
+                <div class="comp-col c-gray">
+                    <h2 style="color: #ccc; margin-bottom: 40px;">Standard Apps</h2>
+                    <div class="c-item"><i class="fas fa-check"></i> Cycle Tracking</div>
+                    <div class="c-item"><i class="fas fa-check"></i> Symptom Log</div>
+                    <div class="c-item" style="opacity: 0.3;"><i class="fas fa-times"></i> Instant Delivery</div>
+                    <div class="c-item" style="opacity: 0.3;"><i class="fas fa-times"></i> Auto-Stocking</div>
+                </div>
+                <div class="comp-col c-white">
+                    <h2 style="color: #ff4757; margin-bottom: 40px;">Red Leaks</h2>
+                    <div class="c-item"><i class="fas fa-check-circle highlight"></i> Cycle Tracking</div>
+                    <div class="c-item"><i class="fas fa-check-circle highlight"></i> Symptom Log</div>
+                    <div class="c-item" style="font-weight: 800; font-size: 1.8rem;"><i class="fas fa-truck highlight"></i> 15-Min Delivery</div>
+                    <div class="c-item" style="font-weight: 800; font-size: 1.8rem;"><i class="fas fa-magic highlight"></i> Auto-Subscription</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- S6 -->
+        <div id="s6" class="slide centered">
+            <div style="width: 120px; height: 120px; background: #ff4757; border-radius: 40px; display: flex; justify-content: center; align-items: center; margin-bottom: 30px; box-shadow: 0 20px 50px rgba(255, 71, 87, 0.4);">
+                <i class="fas fa-tint" style="font-size: 4rem; color: white;"></i>
+            </div>
+            <h1>Red Leaks</h1>
+            <p style="font-size: 2rem; color: #2d3436; text-align: center; margin-top: 10px;">Convenience. Comfort. Confidence.</p>
+            <div style="margin-top: 40px; font-size: 1.2rem; color: #888; letter-spacing: 2px; text-transform: uppercase;">Coming 2025</div>
+        </div>
+
+    </div>
+
+    <script>
+        // 1. SCALER
+        function fitScreen() {
+            const stage = document.getElementById('stage');
+            const scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+            stage.style.transform = `scale(${scale})`;
+        }
+        window.onresize = fitScreen;
+        fitScreen();
+
+        // 2. NARRATION SCRIPT
+        const script = [
+            "We live in a world of instant everything. Yet, at 3 PM on a busy campus, an unexpected period can still cause panic. Why is menstrual care, the only thing that isn't smart yet?",
+            
+            "Always Beside You. Akkam Pakkam Yaarum Illa... But Red Leaks is here. We remember your choices. We know your location. One-time setup, for lifetime comfort.",
+            
+            "Caught off guard? Our Emergency Mode connects to local pharmacy inventory instantly. We dispatch a rider to your exact location, in under 15 minutes.",
+            
+            "But we prefer prevention. Our 'Milkman Model' uses AI to predict your cycle, and delivers your care package two days before you need it.",
+            
+            "Other apps are just digital diaries. Red Leaks is a full-service ecosystem. We combine tracking, with real-world logistics.",
+            
+            "Red Leaks. Convenience. Comfort. Confidence. Every Month."
+        ];
+
+        // 3. SMOOTH VOICE ENGINE (The Fix)
+        let voices = [];
+        // Store utter in window to prevent Chrome Garbage Collection bug
+        window.currentUtterance = null; 
+
+        function loadVoices() { 
+            voices = window.speechSynthesis.getVoices(); 
+            console.log("Voices Loaded:", voices.length);
+        }
+        
+        window.speechSynthesis.onvoiceschanged = loadVoices;
+
+        function playNextScene(index) {
+            if (index >= script.length) return; // End of show
+
+            // 1. VISUAL SWITCH
+            const sceneId = 's' + (index + 1);
+            document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+            document.getElementById(sceneId).classList.add('active');
+
+            // 2. TRIGGER ANIMATIONS (Based on Index)
+            if(index === 1) runPhoneDemo(); // S2
+            if(index === 2) runMapDemo();   // S3
+            if(index === 3) runTimelineDemo(); // S4
+
+            // 3. SPEAK
+            window.speechSynthesis.cancel(); // Clear queue
+            
+            const utterance = new SpeechSynthesisUtterance(script[index]);
+            
+            // --- Voice Settings for Natural Flow ---
+            utterance.rate = 1.0; 
+            utterance.pitch = 1.1;
+            
+            // Voice Selection (India Priority for Tamil words)
+            const preferred = voices.find(v => v.name.includes("India") || v.lang.includes("en-IN")) || 
+                              voices.find(v => v.name.includes("Google US English")) || 
+                              voices.find(v => v.name.includes("Zira"));
+            if (preferred) utterance.voice = preferred;
+
+            // --- THE MAGIC EVENT LISTENER ---
+            utterance.onend = function() {
+                // When speech finishes, immediately go to next
+                console.log("Finished Scene " + (index + 1));
+                // Small buffer for visual digestion
+                setTimeout(() => {
+                    playNextScene(index + 1);
+                }, 800); 
+            };
+
+            utterance.onerror = function(e) {
+                console.error("Speech Error", e);
+                // Fallback if audio fails, still advance
+                setTimeout(() => playNextScene(index + 1), 5000);
+            };
+
+            window.currentUtterance = utterance; // Prevent GC bug
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // --- ANIMATION LOGIC (Separated for Cleanliness) ---
+        function runPhoneDemo() {
+            const m = document.getElementById('mouse');
+            const btnW = document.getElementById('opt-whisper');
+            const btnS = document.getElementById('btn-save');
+            setTimeout(() => { m.style.top = "600px"; m.style.left = "300px"; }, 500);
+            setTimeout(() => { m.style.top = "370px"; m.style.left = "110px"; }, 2000);
+            setTimeout(() => { m.style.transform = "rotate(-25deg) scale(0.8)"; btnW.classList.add('active'); }, 3000);
+            setTimeout(() => { m.style.transform = "rotate(-25deg) scale(1)"; m.style.top = "720px"; m.style.left = "200px"; }, 4000);
+            setTimeout(() => { m.style.transform = "rotate(-25deg) scale(0.8)"; btnS.style.background = "#2ecc71"; btnS.innerHTML = "<i class='fas fa-check'></i> Active"; }, 5500);
+        }
+
+        function runMapDemo() {
+            document.getElementById('scanner').style.animation = "ripple 1s ease-out 2";
+            setTimeout(() => {
+                document.getElementById('st-1').querySelector('.status-dot').style.background = "#ccc";
+                document.getElementById('st-1').querySelector('.status-text').style.color = "#ccc";
+                document.getElementById('st-2').classList.add('active-status');
+            }, 2000);
+            setTimeout(() => { document.getElementById('road').style.width = "671px"; document.getElementById('scooter').style.opacity = 1; }, 3000);
+        }
+
+        function runTimelineDemo() {
+            setTimeout(() => document.getElementById('t1').classList.add('show'), 500);
+            setTimeout(() => document.getElementById('t2').classList.add('show'), 3000);
+            setTimeout(() => document.getElementById('t3').classList.add('show'), 5000);
+        }
+
+        // --- INIT ---
+        function initSystem() {
+            if(voices.length === 0) loadVoices();
+            document.getElementById('launcher').style.display = 'none';
+            
+            // Start the recursive chain
+            playNextScene(0);
+        }
+    </script>
+</body>
+</html>
